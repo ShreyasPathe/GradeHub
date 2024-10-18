@@ -118,7 +118,7 @@ def teacher_dashboard():
             # Teacher options
             option = st.selectbox("Choose an option", 
                                   ("Select", "Top 5 students", "Failed students", "Passed students", 
-                                   "Average marks", "Above average students", "Below average students"))
+                                   "Average marks", "Above average students", "Below average students", "Summary"))
 
             file_type = st.selectbox("Select file format for export", ("CSV", "Excel"))
 
@@ -128,7 +128,7 @@ def teacher_dashboard():
                 st.table(top_5_students)
 
                 export_data = export_file(top_5_students, file_type)
-                st.download_button(label=f"Download Top 5 Students as {file_type}", data=export_data, file_name=f"top_5_students.{file_type.lower()}")
+                st.download_button(label=f"Download Top 5 Students as {file_type}", data=export_data, file_name=f"top_5_students.{file_type.lower() if file_type == 'CSV' else 'xlsx'}")
 
             elif option == "Failed students":
                 failed_students = df[df['RESULT'] == 'FAIL'][['NAME', 'RESULT']]
@@ -136,7 +136,7 @@ def teacher_dashboard():
                 st.table(failed_students)
 
                 export_data = export_file(failed_students, file_type)
-                st.download_button(label=f"Download Failed Students as {file_type}", data=export_data, file_name=f"failed_students.{file_type.lower()}")
+                st.download_button(label=f"Download Failed Students as {file_type}", data=export_data, file_name=f"failed_students.{file_type.lower() if file_type == 'CSV' else 'xlsx'}")
 
             elif option == "Passed students":
                 passed_students = df[df['RESULT'] == 'PASS'][['NAME', 'RESULT']]
@@ -144,7 +144,7 @@ def teacher_dashboard():
                 st.table(passed_students)
 
                 export_data = export_file(passed_students, file_type)
-                st.download_button(label=f"Download Passed Students as {file_type}", data=export_data, file_name=f"passed_students.{file_type.lower()}")
+                st.download_button(label=f"Download Passed Students as {file_type}", data=export_data, file_name=f"passed_students.{file_type.lower() if file_type == 'CSV' else 'xlsx'}")
 
             elif option == "Average marks":
                 avg_marks = df['GRADE'].mean()
@@ -157,7 +157,7 @@ def teacher_dashboard():
                 st.table(above_avg_students)
 
                 export_data = export_file(above_avg_students, file_type)
-                st.download_button(label=f"Download Above Average Students as {file_type}", data=export_data, file_name=f"above_average_students.{file_type.lower()}")
+                st.download_button(label=f"Download Above Average Students as {file_type}", data=export_data, file_name=f"above_average_students.{file_type.lower() if file_type == 'CSV' else 'xlsx'}")
 
             elif option == "Below average students":
                 avg_marks = df['GRADE'].mean()
@@ -166,7 +166,31 @@ def teacher_dashboard():
                 st.table(below_avg_students)
 
                 export_data = export_file(below_avg_students, file_type)
-                st.download_button(label=f"Download Below Average Students as {file_type}", data=export_data, file_name=f"below_average_students.{file_type.lower()}")
+                st.download_button(label=f"Download Below Average Students as {file_type}", data=export_data, file_name=f"below_average_students.{file_type.lower() if file_type == 'CSV' else 'xlsx'}")
+            
+            elif option == "Summary":
+                # Number of passed, failed, and absent students
+                num_passed = df[df['RESULT'] == 'PASS'].shape[0]
+                num_failed = df[df['RESULT'] == 'FAIL'].shape[0]
+                num_absent = df[df['RESULT'] == 'ABSENT'].shape[0]
+                total_students = df.shape[0]
+
+                st.write("### Summary of Results")
+                st.write(f"**Total Students**: {total_students}")
+                st.write(f"**Passed Students**: {num_passed}")
+                st.write(f"**Failed Students**: {num_failed}")
+                st.write(f"**Absent Students**: {num_absent}")
+
+                # Create a summary dataframe for export
+                summary_data = pd.DataFrame({
+                    'Total Students': [total_students],
+                    'Passed Students': [num_passed],
+                    'Failed Students': [num_failed],
+                    'Absent Students': [num_absent]
+                })
+
+                export_data = export_file(summary_data, file_type)
+                st.download_button(label=f"Download Summary as {file_type}", data=export_data, file_name=f"summary.{file_type.lower() if file_type == 'CSV' else 'xlsx'}")
 
 # Student's Dashboard for Result Search
 def student_dashboard():
@@ -184,6 +208,8 @@ def student_dashboard():
                 student_result = df[df['NAME'].str.lower() == student_name.lower()]
                 
                 if not student_result.empty:
+                    # Round the 'GRADE' to two decimals
+                    student_result['GRADE'] = student_result['GRADE'].round(2)
                     st.write(f"### Result for {student_name}:")
                     st.table(student_result)
                 else:
