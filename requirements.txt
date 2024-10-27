@@ -4,3 +4,4 @@ pandas
 pymongo
 gridfs
 bcrypt
+BytesIO
